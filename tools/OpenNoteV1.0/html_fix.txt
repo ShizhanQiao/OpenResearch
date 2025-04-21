@@ -1,0 +1,113 @@
+【html】
+
+请检查上面的html是否包含所提及的问题，若存在，则你需要进行修复：
+
+问题1：<h1>标签的个数超过2个，请将其变为1个或2个，按照意图合并或删除。请注意，若你决定合并<h1>标签的数量为2个，那么请参考我给出的【案例6】，将两个<h1>标签的样式设置为左对齐和右对齐。注意，若原有html中的<h1>标签的数量为1个，哪怕其中可能会有<br>这种换行符，你也不需要强行将其拆分成两个。
+问题2：没有设置页面宽度为550px。
+问题3：没有设置正文<p>样式或错误地采用<li>定义。
+问题4：文字包裹过于鲜艳或混乱、整体画面颜色不协调、文本颜色和背景过于相似（例如背景偏深色，文本也是偏深色）等问题，你需要协调整体画面颜色，可以采用六位数颜色代码而非颜色的名字。
+问题5：表头的填充颜色应当只有一个，若出现多个，或者表头不协调，请你统一表头的填充颜色并协调表头。
+问题6：CSS选择器和HTML内部的标签不匹配，例如CSS选择器中的.h1_left和.h1_right，但是HTML中的标签是<h1_left>和<h1_right>，请你将CSS选择器中的.h1_left和.h1_right修改为h1_left和h1_right。
+问题7：图片尺寸没有做限定，导致整个页面很丑，你也需要限定一下图片的尺寸，并且如果有些图片适合做背景，你也可以添加一个背景。
+
+下面是一些你可以参考修改的案例：
+
+【案例1】若图片上方有单行的标题，那么样式可以参考：
+```html
+h1 {
+    color: red; /* 根据实际情况修改颜色 */
+    font-size: 60px; /* 60px的字体仅对标题字数小于等于9个字生效，若标题字数大于9个字，那么字体大小应当适当缩小。 */
+    text-align: center;
+    margin-bottom: 5px;
+}
+```
+
+【案例2】小标题的样式可以参考：
+```html
+h2 {
+    background-color: lightblue; /* 根据实际情况修改颜色 */
+    color: black; /* 根据实际情况修改颜色 */
+    font-size: 28px;
+    padding: 5px;
+    display: inline-block;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+```
+
+【案例3】较为舒适的正文样式（最好都要加上）：
+```html
+p {
+    font-size: 18px;
+    line-height: 2.0;
+    margin: 0;
+}
+```
+
+【案例4】设置页面宽度为550px：
+```html
+body {
+    width: 550px;
+    margin: 0 auto;
+}
+```
+
+【案例5】带有emoji的文本参考：
+```html
+<p>1️⃣带有emoji的文本（根据实际情况调整）👍</p>
+```
+
+【案例6】若图片上方有双行标题，且第一行和第二行分别左对齐和右对齐，那么样式可以参考：
+```html
+h1_left {
+    color: red; /* 根据实际情况修改颜色 */
+    font-size: 60px; /* 60px的字体仅对标题字数小于等于9个字生效，若标题字数大于9个字，那么字体大小应当适当缩小。 */
+    text-align: left; /* 左对齐 */
+    margin-bottom: 5px;
+}
+
+h1_right {
+    color: red; /* 根据实际情况修改颜色 */
+    font-size: 60px; /* 60px的字体仅对标题字数小于等于9个字生效，若标题字数大于9个字，那么字体大小应当适当缩小。 */
+    text-align: right; /* 右对齐 */
+    margin-bottom: 5px;
+}
+```
+
+【案例7】图片上方双行标题中出现颜色不同的文字：
+```html
+<h1_left>这是一个<font color="red">红色</font>的文字</h1_left>
+<h1_right><font color="blue">蓝色</font>的文字</h1_right>
+```
+
+【案例8】图片中若出现表格，可以参考下面的公共样式：
+```html
+.table-container {
+   border: 1px solid black; /* 根据实际情况修改颜色，必选边框 */
+}
+
+.table-container table th {
+   background-color: #e0e0e0; /* 根据实际情况调整颜色，必选 */
+}
+```
+
+【案例9】若一张图片中包含多个矩阵形式的小图片，那么你可以参考下面的样式：
+```html
+.place {
+    width: 18%; /* 一行是4个小图片，那么宽度就是18%，否则需设置为更小 */
+    text-align: center;
+    margin: 10px;
+}
+
+.place img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    max-width: 120px;
+    max-height: 80px;
+    margin: 0 auto 10px;
+    object-fit: cover;
+}
+```
+
+**特别注意**：若原始的html没有出现上述问题，那么你不需要强行添加这些样式，只需要原样输出即可。

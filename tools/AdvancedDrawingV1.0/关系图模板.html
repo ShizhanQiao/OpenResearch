@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>家庭关系图</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f7fa;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1920px;
+      padding: 20px;
+      box-sizing: border-box;
+      margin: 0 auto;
+    }
+
+    .diagram-container {
+      position: relative;
+      width: 100%;
+      height: 80vh;
+      min-height: 600px;
+      overflow: hidden;
+    }
+
+    .node {
+      position: absolute;
+      width: 120px;
+      height: 150px;
+      text-align: center;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+      transition: all 0.5s ease; /* 添加平滑过渡效果 */
+    }
+
+    .node-circle {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 5px solid #4b83a6;
+      margin: 0 auto;
+      overflow: hidden;
+      background-color: white;
+    }
+
+    .node-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .node-name {
+      margin-top: 10px;
+      font-weight: bold;
+      font-size: 18px;
+      color: #333;
+      background-color: rgba(255, 255, 255, 0.8);
+      border-radius: 4px;
+      padding: 2px 0;
+    }
+
+    .controls {
+      margin-bottom: 20px;
+      padding: 15px;
+      text-align: center;
+    }
+
+    .controls h2 {
+      margin: 0;
+    }
+
+    #connections-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .relationship-label {
+      position: absolute;
+      background-color: rgba(255, 255, 255, 0.8);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 16px;
+      color: #555;
+      z-index: 2;
+      transform: translate(-50%, -50%);
+      transition: all 0.5s ease; /* 添加平滑过渡效果 */
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="controls">
+    <h2>模板</h2>
+  </div>
+
+  <div class="diagram-container" id="diagram">
+    <canvas id="connections-canvas"></canvas>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const diagram = document.getElementById('diagram');
+    const canvas = document.getElementById('connections-canvas');
+    const ctx = canvas.getContext('2d');
+
+    // 设置画布尺寸为容器的实际大小
+    function resizeCanvas() {
+      canvas.width = diagram.offsetWidth;
+      canvas.height = diagram.offsetHeight;
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // 创建数据，从外部输入
+    const nodes = [
+    ];
+
+    // 定义关系数据，从外部输入
+    const relationships = [
+    ];
+
+    // 定义标题，从外部输入
+    const title = '家庭关系图';
+
+    // 修改h2
+    document.querySelector('.controls h2').textContent = title;
+
+    // 力导向布局算法
+    function forceDirectedLayout(nodes, links, width, height, iterations = 100) {
+      // 为节点添加物理属性
+      const nodeMap = {};
+      nodes.forEach(node => {
+        nodeMap[node.id] = node;
+        node.vx = 0;  // x方向速度
+        node.vy = 0;  // y方向速度
+        node.fx = 0;  // x方向力
+        node.fy = 0;  // y方向力
+      });
+
+      // 设置参数
+      const repulsion = 1000000;   // 节点间排斥力
+      const springLength = 500;  // 理想链接长度
+      const springK = 0.05;      // 弹簧系数
+      const damping = 0.5;       // 阻尼系数
+      const centerAttraction = 0.02; // 向中心的吸引力系数
+
+      // 初始位置 - 在圆周上均匀分布
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const radius = Math.min(width, height) * 0.35;
+
+      nodes.forEach((node, i) => {
+        const angle = (i / nodes.length) * 2 * Math.PI;
+        node.x = centerX + radius * Math.cos(angle);
+        node.y = centerY + radius * Math.sin(angle);
+      });
+
+      // 优化位置
+      for (let iter = 0; iter < iterations; iter++) {
+        // 重置力
+        nodes.forEach(node => {
+          node.fx = 0;
+          node.fy = 0;
+        });
+
+        // 计算排斥力 (所有节点之间)
+        for (let i = 0; i < nodes.length; i++) {
+          for (let j = i + 1; j < nodes.length; j++) {
+            const node1 = nodes[i];
+            const node2 = nodes[j];
+
+            const dx = node2.x - node1.x;
+            const dy = node2.y - node1.y;
+            const distanceSq = dx * dx + dy * dy;
+            const distance = Math.sqrt(distanceSq) || 1;
+
+            // 排斥力与距离平方成反比
+            const force = repulsion / distanceSq;
+            const fx = (dx / distance) * force;
+            const fy = (dy / distance) * force;
+
+            node1.fx -= fx;
+            node1.fy -= fy;
+            node2.fx += fx;
+            node2.fy += fy;
+          }
+        }
+
+        // 计算链接的弹簧力
+        links.forEach(link => {
+          const source = nodeMap[link.source];
+          const target = nodeMap[link.target];
+
+          const dx = target.x - source.x;
+          const dy = target.y - source.y;
+          const distance = Math.sqrt(dx * dx + dy * dy) || 1;
+
+          // 胡克定律: F = k * (x - x0)
+          const displacement = distance - springLength;
+          const force = springK * displacement;
+
+          const fx = (dx / distance) * force;
+          const fy = (dy / distance) * force;
+
+          source.fx += fx;
+          source.fy += fy;
+          target.fx -= fx;
+          target.fy -= fy;
+        });
+
+        // 向中心的吸引力 (防止节点飞离)
+        nodes.forEach(node => {
+          const dx = centerX - node.x;
+          const dy = centerY - node.y;
+          const distance = Math.sqrt(dx * dx + dy * dy) || 1;
+
+          node.fx += dx * centerAttraction;
+          node.fy += dy * centerAttraction;
+        });
+
+        // 更新速度和位置
+        nodes.forEach(node => {
+          // 应用阻尼
+          node.vx = (node.vx + node.fx) * damping;
+          node.vy = (node.vy + node.fy) * damping;
+
+          // 更新位置
+          node.x += node.vx;
+          node.y += node.vy;
+
+          // 确保节点在可视区域内
+          const padding = 100;
+          node.x = Math.max(padding, Math.min(width - padding, node.x));
+          node.y = Math.max(padding, Math.min(height - padding, node.y));
+        });
+      }
+
+      return nodes;
+    }
+
+    // 应用布局算法
+    const optimizedNodes = forceDirectedLayout(
+            nodes,
+            relationships,
+            canvas.width,
+            canvas.height
+    );
+
+    // 创建成员节点
+    optimizedNodes.forEach(member => {
+      const nodeElement = document.createElement('div');
+      nodeElement.classList.add('node');
+      nodeElement.id = member.id;
+      nodeElement.style.left = `${member.x}px`;
+      nodeElement.style.top = `${member.y}px`;
+
+      const nodeCircle = document.createElement('div');
+      nodeCircle.classList.add('node-circle');
+
+      // 如果有图片就添加图片，否则使用默认背景
+      if (member.image_src) {
+        const img = document.createElement('img');
+        img.classList.add('node-img');
+        img.src = member.image_src;
+        img.alt = member.name;
+        nodeCircle.appendChild(img);
+      }
+
+      const nodeName = document.createElement('div');
+      nodeName.classList.add('node-name');
+      nodeName.textContent = member.name;
+
+      nodeElement.appendChild(nodeCircle);
+      nodeElement.appendChild(nodeName);
+      diagram.appendChild(nodeElement);
+    });
+
+    // 绘制连接线和关系标签
+    function drawConnections() {
+      // 清除画布
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 移除所有旧的关系标签
+      document.querySelectorAll('.relationship-label').forEach(el => el.remove());
+
+      // 绘制新的连接和标签
+      relationships.forEach(rel => {
+        const sourceNode = document.getElementById(rel.source);
+        const targetNode = document.getElementById(rel.target);
+
+        if (!sourceNode || !targetNode) return;
+
+        // 获取节点位置（考虑节点中心点）
+        const sourceRect = sourceNode.getBoundingClientRect();
+        const targetRect = targetNode.getBoundingClientRect();
+        const diagramRect = diagram.getBoundingClientRect();
+
+        // 计算相对于diagram容器的位置
+        const sourceX = sourceRect.left - diagramRect.left + sourceRect.width / 2;
+        const sourceY = sourceRect.top - diagramRect.top + sourceRect.height / 2 - 15; // 略微调整高度对准圆心
+        const targetX = targetRect.left - diagramRect.left + targetRect.width / 2;
+        const targetY = targetRect.top - diagramRect.top + targetRect.height / 2 - 15; // 略微调整高度对准圆心
+
+        // 计算线条起点和终点（考虑圆形边界）
+        const dx = targetX - sourceX;
+        const dy = targetY - sourceY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const angle = Math.atan2(dy, dx);
+
+        const nodeRadius = 60; // 圆形节点的半径
+        const startX = sourceX + nodeRadius * Math.cos(angle);
+        const startY = sourceY + nodeRadius * Math.sin(angle);
+        const endX = targetX - nodeRadius * Math.cos(angle);
+        const endY = targetY - nodeRadius * Math.sin(angle);
+
+        // 绘制贝塞尔曲线
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+
+        // 贝塞尔曲线控制点
+        const controlX1 = sourceX + dx / 3;
+        const controlY1 = sourceY + dy / 3;
+        const controlX2 = sourceX + dx * 2 / 3;
+        const controlY2 = sourceY + dy * 2 / 3;
+
+        ctx.bezierCurveTo(controlX1, controlY1, controlX2, controlY2, endX, endY);
+        ctx.strokeStyle = rel.color;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        // 绘制箭头
+        const arrowLength = 15;
+        const arrowWidth = 8;
+
+        // 计算箭头方向（曲线终点切线）
+        const t = 1.0; // 贝塞尔曲线参数t=1表示终点
+        // 计算切线向量（贝塞尔曲线导数）
+        const tx = 3 * (1 - t) * (1 - t) * (controlX1 - startX) +
+                6 * (1 - t) * t * (controlX2 - controlX1) +
+                3 * t * t * (endX - controlX2);
+        const ty = 3 * (1 - t) * (1 - t) * (controlY1 - startY) +
+                6 * (1 - t) * t * (controlY2 - controlY1) +
+                3 * t * t * (endY - controlY2);
+        const tangentAngle = Math.atan2(ty, tx);
+
+        // 绘制箭头
+        ctx.beginPath();
+        ctx.moveTo(endX, endY);
+        ctx.lineTo(
+                endX - arrowLength * Math.cos(tangentAngle) + arrowWidth * Math.sin(tangentAngle),
+                endY - arrowLength * Math.sin(tangentAngle) - arrowWidth * Math.cos(tangentAngle)
+        );
+        ctx.lineTo(
+                endX - arrowLength * Math.cos(tangentAngle) - arrowWidth * Math.sin(tangentAngle),
+                endY - arrowLength * Math.sin(tangentAngle) + arrowWidth * Math.cos(tangentAngle)
+        );
+        ctx.closePath();
+        ctx.fillStyle = rel.color;
+        ctx.fill();
+
+        // 添加关系标签
+        const labelElement = document.createElement('div');
+        labelElement.classList.add('relationship-label');
+        labelElement.textContent = rel.label;
+        labelElement.style.left = `${(startX + endX) / 2}px`;
+        labelElement.style.top = `${(startY + endY) / 2 - 10}px`; // 略微上移
+        diagram.appendChild(labelElement);
+      });
+    }
+
+    // 初始绘制连接
+    drawConnections();
+
+    // 窗口大小改变时重新绘制
+    window.addEventListener('resize', function() {
+      resizeCanvas();
+      drawConnections();
+    });
+  });
+</script>
+</body>
+</html>
