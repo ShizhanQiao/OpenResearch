@@ -6,8 +6,9 @@
 
 我不会vue，所以前端代码和大部分后端代码都是我和AI一起写的。
 
-两个复杂任务的Demo：
+两个复杂任务的Demo（视频较大，可能无法显示）：
 
+[OpenResearchDemo1-多文档生成.mp4](OpenResearchDemo1-多文档生成.mp4)
 [OpenResearchDemo2：批量生成小红书.mp4](OpenResearchDemo2：批量生成小红书.mp4)
 
 
