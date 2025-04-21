@@ -8,6 +8,7 @@
 
 两个复杂任务的Demo：
 
+[OpenResearchDemo2：批量生成小红书.mp4](OpenResearchDemo2：批量生成小红书.mp4)
 
 
 注：本地环境部署较为复杂，推荐去官网[Open Research](https://open-research.cn/)体验，试运行期间免费体验。
